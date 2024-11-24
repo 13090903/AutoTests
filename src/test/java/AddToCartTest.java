@@ -1,4 +1,3 @@
-import com.google.common.primitives.Ints;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openqa.selenium.By;
@@ -56,7 +55,6 @@ public class AddToCartTest {
         driver.get("https://4lapy.ru/product/royal-canin-sterilised-vlazhnyj-korm-dlya-sterilizovannyh-koshek-v-souse-85-g-626-1011129/");
         String expectedProductName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("product_title"))).getText();
         Integer expectedProductAmount = extractAmount(wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='product_packing_PAK']//div[contains(@class, 'ProductPacking_packSizeAmount__mtDbb')]"))).getText()); // там хранится количество товара
-        System.out.println(expectedProductAmount);
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("product_packing_PAK"))).click(); // это кнопка для выбора пачки товаров
         WebElement addToCartButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("product_add_to_cart_button")));
         // when
