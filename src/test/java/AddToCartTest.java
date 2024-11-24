@@ -160,6 +160,34 @@ public class AddToCartTest {
         assertEquals(extraAmount + 1, extractAmount(wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("Title_root__J7hHl"))).getText())); // здесь пишется количество
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2})
+    public void testAddExtraProductToCartFromCartSuccess(int extraAmount) throws InterruptedException {
+        // given
+        driver.get("https://4lapy.ru/catalog/koshki/korm-koshki/dieticheskiy/");
+        String expectedProductName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//article[@data-id='1011129']//div[@class='CardProduct_productNameInner__Jc_on']"))).getText();
+        Double expectedProductPrice = getRoundedPrice(wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("id_card_price_1011129"))).getText())*(extraAmount + 1);
+        WebElement addToCartButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@data-offerid='1011129']//button[contains(@class, 'ProductCardBtn_btn__3Jxlo') and @aria-label='В корзину']"))); // интересная ситуация, элемент меняется в процессе и просит новое состояние
+        closeCookies();
+
+        // when
+        addToCartButton.click();
+        WebElement cartIcon = wait.until(ExpectedConditions.elementToBeClickable(By.id("nav_menu_cart")));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("NavIcon_tagWrapper__jsM4T"))); // проверяем, что у корзины появляется значок товара (чтобы не перейти раньше времени)
+        cartIcon.click();
+        Thread.sleep(3000);
+        WebElement addExtraProductButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@data-offerid='1011129']//button[contains(@class, 'Counter_controlButton__sTA8n') and @data-counter-action='plus']")));
+        for (int i = 0; i < extraAmount; i++) {
+            addExtraProductButton.click();
+            Thread.sleep(3000);
+        }
+        Thread.sleep(3000);
+
+        // then
+        assertTrue(verifyCartItems(driver, new HashSet<>(Collections.singletonList(expectedProductName)), expectedProductPrice));
+        assertEquals(extraAmount + 1, extractAmount(wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("Title_root__J7hHl"))).getText())); // здесь пишется количество
+    }
+
     private Double getPrice(String textPrice) {
         String cleanedPrice = textPrice.replace(" ", "");
         return Double.valueOf(cleanedPrice.substring(0, cleanedPrice.length() - 1));
