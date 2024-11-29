@@ -224,7 +224,6 @@ public class AddToCartTest {
         // given
         driver.get(CATALOG_URL);
         String expectedProductName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CATALOG_PRODUCT_NAME_XPATH))).getText();
-        Double expectedProductPrice = getRoundedPrice(wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CATALOG_PRODUCT_PRICE_ID))).getText());
         WebElement addToCartButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CATALOG_ADD_TO_CART_BUTTON_XPATH))); // интересная ситуация, элемент меняется в процессе и просит новое состояние
         closeCookies();
 
