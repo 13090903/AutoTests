@@ -49,10 +49,12 @@ public class AddToCartTest {
     private static final String CATALOG_FILTERED_PRODUCT_NAME_XPATH = "//article[@data-id='1026745']//div[@class='CardProduct_productNameInner__Jc_on']";
     private static final String ADD_EXTRA_PRODUCT_BUTTON_XPATH = "//div[@data-offerid='1026745']//button[contains(@class, 'Counter_controlButton__sTA8n') and @data-counter-action='plus']";
     private static final String ADD_EXTRA_PRODUCT_FROM_CART_BUTTON_XPATH = "//div[@data-offerid='1011129']//button[contains(@class, 'Counter_controlButton__sTA8n') and @data-counter-action='plus']";
+    private static final String DELETE_PRODUCT_FROM_CART_BUTTON_XPATH = "//div[@data-offerid='1011129']//button[contains(@class, 'Counter_controlButton__sTA8n') and @data-counter-action='minus']";
     private static final String COOKIES_CONTAINER_CLASS = "CookiesNotification_root__rmqa4";
     private static final String BUTTON_SELECTOR = "button";
     private static final String PRODUCT_TITLE_ID_SELECTOR = "[id^='cart_product_title_']";
     private static final String CART_TOTAL_PRICE_ID = "cart_total_products_price";
+    private static final String EMPTY_CART_CLASS = "EmptyCart_root__pVp3a";
 
     @BeforeEach
     public void setUp() {
@@ -217,6 +219,29 @@ public class AddToCartTest {
         assertEquals(extraAmount + 1, extractAmount(wait.until(ExpectedConditions.visibilityOfElementLocated(By.className(CART_PRODUCT_AMOUNT))).getText())); // здесь пишется количество
     }
 
+    @Test
+    public void testDeleteProductFromCartSuccess() throws InterruptedException {
+        // given
+        driver.get(CATALOG_URL);
+        String expectedProductName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CATALOG_PRODUCT_NAME_XPATH))).getText();
+        Double expectedProductPrice = getRoundedPrice(wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CATALOG_PRODUCT_PRICE_ID))).getText());
+        WebElement addToCartButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CATALOG_ADD_TO_CART_BUTTON_XPATH))); // интересная ситуация, элемент меняется в процессе и просит новое состояние
+        closeCookies();
+
+        // when
+        addToCartButton.click();
+        WebElement cartIcon = wait.until(ExpectedConditions.elementToBeClickable(By.id(NAV_MENU_CART_BUTTON_ID)));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className(PRODUCT_COUNTER))); // проверяем, что у корзины появляется значок товара (чтобы не перейти раньше времени)
+        cartIcon.click();
+        Thread.sleep(3000);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(DELETE_PRODUCT_FROM_CART_BUTTON_XPATH))).click();
+        Thread.sleep(3000);
+
+
+        // then
+        assertTrue(verifyCartIsEmpty() || verifyCartItems(driver, new HashSet<>(Collections.singletonList(expectedProductName)), 0d));
+    }
+
     private Double getPrice(String textPrice) {
         String cleanedPrice = textPrice.replace(" ", "");
         return Double.valueOf(cleanedPrice.substring(0, cleanedPrice.length() - 1));
@@ -249,6 +274,15 @@ public class AddToCartTest {
         }
         Double actualPrice = getRoundedPrice(wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CART_TOTAL_PRICE_ID))).getText());
         return (actualItems.equals(expectedItems) && actualPrice.equals(expectedPrice));
+    }
+
+    private boolean verifyCartIsEmpty() {
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.className(EMPTY_CART_CLASS)));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @AfterEach
